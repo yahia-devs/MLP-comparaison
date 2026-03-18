@@ -1,5 +1,5 @@
 # MLP from scratch
-# Yahia Chemlali — Université Paris-Saclay
+# Yahia Chemlali
 #
 # Le but c'est de coder un perceptron multi couches sans pytorch/tensorflow,
 # juste numpy. On le teste sur Fashion-MNIST : 70 000 images 28x28 de
@@ -7,7 +7,9 @@
 # L'important c'est de comprendre les maths derrière : fonction d'activation,
 # backpropagation, etc.
 #
-# Ref : https://web.stanford.edu/~jurafsky/slp3/
+# ref : https://web.stanford.edu/~jurafsky/slp3/
+
+#      : https://rtavenar.github.io/deep_book/book_fr.pdf
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,11 +24,6 @@ CLASS_NAMES = [
 ]
 
 
-# fonctions d'activation
-# relu pour les couches cachées, softmax pour la sortie vu qu'on fait
-# de la classification multi-classe. pour softmax on soustrait le max
-# pour eviter les overflow
-
 def relu(z):
     return np.maximum(0, z)
 
@@ -40,19 +37,13 @@ def softmax(z):
     return e / np.sum(e, axis=0, keepdims=True)
 
 
-# la loss
-# cross entropy, on ajoute un petit epsilon pour eviter log(0)
 
 def cross_entropy(pred, vrai):
     m = vrai.shape[1]
     return -np.sum(vrai * np.log(pred + 1e-12)) / m
 
 
-# la classe MLP
-# c'est la ou tout se passe. le constructeur initialise les poids avec He init
-# (bien pour relu), apres on a forward, backward et update.
-# c'est juste du calcul matriciel et la chain rule.
-# on train en mini-batch pour que ca aille vite
+
 
 class MLP:
     def __init__(self, couches, acts, lr=0.01):
@@ -137,10 +128,7 @@ def one_hot(y, k):
     return oh
 
 
-# chargement du dataset
-# Fashion-MNIST : 70 000 images 28x28 de vetements, 10 classes.
-# le telechargement prend un peu de temps la premiere fois (~55 MB).
-# on normalise entre 0 et 1 et on split 80/20 train/test
+
 
 print("chargement de Fashion-MNIST...")
 mnist = fetch_openml('Fashion-MNIST', version=1, as_frame=False)
@@ -158,7 +146,6 @@ print("train: " + str(X_train.shape[1]) + " samples")
 print("test:  " + str(X_test.shape[1]) + " samples")
 print("features: " + str(X_train.shape[0]))
 
-# un apercu des donnees
 fig, axes = plt.subplots(2, 8, figsize=(12, 3))
 for i, ax in enumerate(axes.flat):
     ax.imshow(X_train[:, i].reshape(28, 28), cmap='gray')
@@ -168,8 +155,6 @@ plt.suptitle('exemples du dataset')
 plt.tight_layout()
 plt.show()
 
-# entrainement
-# archi: 784 entrees (28x28) -> 256 -> 128 -> 10 sorties
 
 net = MLP(
     couches=[784, 256, 128, 10],
@@ -179,12 +164,10 @@ net = MLP(
 
 hist, accs = net.train(X_train, y_train_oh, iterations=30, batch_size=64, log=5)
 
-# evaluation sur le test set
 pred_test = net.predict(X_test)
 acc_test = np.mean(pred_test == y_test)
 print("accuracy sur le test set: " + str(round(acc_test * 100, 2)) + "%")
 
-# loss et accuracy sur le meme plot
 fig, ax1 = plt.subplots(figsize=(9, 4))
 
 ax1.plot(hist, color='steelblue', label='loss')
@@ -203,7 +186,6 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 
-# matrice de confusion
 cm = confusion_matrix(y_test, pred_test)
 fig, ax = plt.subplots(figsize=(10, 8))
 ConfusionMatrixDisplay(cm, display_labels=CLASS_NAMES).plot(ax=ax, cmap='Blues')
@@ -212,8 +194,7 @@ plt.xticks(rotation=45, ha='right')
 plt.tight_layout()
 plt.show()
 
-# quelques predictions
-# on affiche des images du test set avec la prediction du reseau, en rouge si c'est faux
+
 fig, axes = plt.subplots(2, 8, figsize=(12, 3))
 for i, ax in enumerate(axes.flat):
     img = X_test[:, i].reshape(28, 28)
@@ -226,3 +207,4 @@ for i, ax in enumerate(axes.flat):
 plt.suptitle('vert=bon, rouge=erreur')
 plt.tight_layout()
 plt.show()
+
